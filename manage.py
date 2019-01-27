@@ -39,12 +39,12 @@ def send_gmail(myaddress, mypassword, toaddress, subject, bodytxt, flag=True):
 def send_gmail_all(myaddress, mypassword, tenant_list, flag=True):
     """ send to all tenant in a tenant list """
     for tenant in tenant_list:
-        if not tenant.skipemail:
+        if tenant.sendemail:
             send_gmail(myaddress, mypassword, tenant.email,
                        'Utility bill due %s' % tenant.service_cycle.get_billday_string(), tenant.get_email_txt(), flag)
             print('E-maind sent successfully ==> %s [%s %s]' % (tenant.email, tenant.room, tenant.name))
         else:
-            print('\nWarning: Skip e-mail selected %s [%s %s]\n' % (tenant.email, tenant.room, tenant.name))
+            print('\nWarning: NOT SEND e-mail to %s [%s %s]\n' % (tenant.email, tenant.room, tenant.name))
 
 
 def ask_confirm(action):
@@ -79,10 +79,14 @@ def test_open(filename, sheetname):
 if __name__ == '__main__':
     def main():
         print(' ')
-        if len(sys.argv) < 3 or sys.argv[1] != '-i':
-            excel.Excel.error_exit('Usage: py manage.py -i file[.xlsx] [sheetname]', ERROR_WRONG_CMD)
-        filename = sys.argv[2] if sys.argv[2].endswith('.xlsx') else sys.argv[2] + '.xlsx'
-        sheetname = 'next' if len(sys.argv) == 3 else sys.argv[3]
+        filename = 'nosuchfile'
+        if len(sys.argv) < 2 or sys.argv[1] != '-i':
+            excel.Excel.error_exit('Usage: python manage.py -i [file.xlsx] [sheetname]', ERROR_WRONG_CMD)
+        elif len(sys.argv) == 2:
+            filename = 'OasisTenates.xlsx'
+        else:
+            filename = sys.argv[2] if sys.argv[2].endswith('.xlsx') else sys.argv[2] + '.xlsx'
+        sheetname = 'next' if len(sys.argv) <= 3 else sys.argv[3]
         # test open file and find sheet using openpyxl
         if not test_open(filename, sheetname):
             excel.Excel.error_exit('%s [%s] has wrong format or not accessible' % (filename, sheetname), ERROR_WRONG_XLSX)
@@ -96,7 +100,7 @@ if __name__ == '__main__':
             with open('config.txt') as fin:
                 email = fin.readline().strip()
                 password = fin.readline().strip()
-            send_gmail_all(email, password, xlsx.tenant, False)
+            send_gmail_all(email, password, xlsx.tenant, True)
         if ask_confirm('backup xlsx'):
             xlsx.backup(filename[:-5]+' backup.xlsx')
         if ask_confirm('clean input xlsx'):

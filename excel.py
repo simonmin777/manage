@@ -26,7 +26,7 @@ class Tenant:
         self.service_cycle = None   # ServiceCycle object
         self.service_power_days = 0       # int
         self.service_water_days = 0       # int
-        self.skipemail = False      # bool
+        self.sendemail = False      # bool
 
     def __repr__(self):
         rest = '%s | %s | %s ' % (self.room, self.name, self.email)
@@ -58,23 +58,23 @@ class Tenant:
         if self.service_cycle.is_power_cycle():
             rest += 'ENERGY Statement for the billing period from ' \
                     + str(self.service_cycle.power_start)[:10] + ' to ' \
-                    + str(self.service_cycle.power_end)[:10] + '\n'
-            rest += 'You have been charged for %d days during this service period for a total of $%.02f\n' \
+                    + str(self.service_cycle.power_end)[:10] + '.\n\n'
+            rest += 'You have been charged for %d days during this service period for a total of $%.02f.\n\n' \
                     % (self.service_power_days, self.power_my_fee)
         else:
-            rest += 'There is no ENERGY Statement this billing period.\n'
+            rest += 'There is no ENERGY Statement this billing period.\n\n'
         if self.service_cycle.is_water_cycle():
             rest += 'WATER Statement for the billing period from ' \
                     + str(self.service_cycle.water_start)[:10] + ' to ' \
-                    + str(self.service_cycle.water_end)[:10] + '\n'
-            rest += 'You have been charged for %d days during this service period for a total of $%.02f\n' \
+                    + str(self.service_cycle.water_end)[:10] + '.\n\n'
+            rest += 'You have been charged for %d days during this service period for a total of $%.02f.\n\n' \
                     % (self.service_water_days, self.water_my_fee)
         else:
-            rest += 'There is no WATER Statement this billing period.\n'
+            rest += 'WATER bill is sent every other month. no bill for this month.\n\n'
         # determine power + water
-        rest += '\nTotal amount due is $%.02f + $%.02f = $%.02f\n' % (self.power_my_fee, self.water_my_fee, self.power_my_fee + self.water_my_fee)
-        rest += 'It is payable on the first day of the following month, i.e. %s\n\n' % self.service_cycle.get_billday_string()[:10]
-        rest += 'Make one single payment to cover the credit/debit forwarded from last month, utility bills and rent, if any.\n'
+        rest += 'Total amount due is $%.02f + $%.02f = $%.02f.\n' % (self.power_my_fee, self.water_my_fee, self.power_my_fee + self.water_my_fee)
+        rest += 'It is payable on the first day of the following month, i.e. %s.\n\n' % self.service_cycle.get_billday_string()[:10]
+        rest += 'Make one single payment to cover the credit/debit forwarded from last month, utility bills and rent, if any.\n\n'
         rest += 'If you have any questions, please do not hesitate to ask.\n\n'
         rest += 'Best Regards,\nPaul\n\n'
         rest += 'A copy of the current statement is available upon request.\n'
@@ -117,7 +117,7 @@ class ServiceCycle:
         elif self.power_end < movein or self.power_start > moveout:
             return 0
         else:
-            return (min(moveout, self.power_end) - max(movein, self.power_start)).days
+            return (min(moveout, self.power_end) - max(movein, self.power_start)).days + 1  # power days + 1
 
     def get_water_days(self, movein, moveout):
         if moveout is None:
@@ -193,8 +193,8 @@ class Excel:
         self.power_fee = matrix['power']-1
         self.water_fee = matrix['water']-1
         self.tenant = []
-        # add skip e-mail feature
-        self.skip_email = matrix['skip e-mail']-1
+        # add send e-mail feature
+        self.send_email = matrix['send e-mail']-1
         self.filename = filename        # for clean up, need save with filename
 
     @staticmethod
@@ -233,8 +233,8 @@ class Excel:
             tenant_power_sum += self.tenant[index].power_my_fee
             tenant_water_sum += self.tenant[index].water_my_fee
             index += 1
-        print('power %s: %.02f vs %.02f' % (str(int(100*abs(tenant_power_sum - tmp_power_sum)) < len(self.tenant) - tenant_index), tenant_power_sum, tmp_power_sum))
-        print('water %s: %.02f vs %.02f' % (str(int(abs(tenant_water_sum - tmp_water_sum)) < len(self.tenant) - tenant_index), tenant_water_sum, tmp_water_sum))
+        print('power %s: %.02f vs %.02f' % (str(int(100*abs(tenant_power_sum - tmp_power_sum)) <= len(self.tenant) - tenant_index), tenant_power_sum, tmp_power_sum))
+        print('water %s: %.02f vs %.02f' % (str(int(abs(tenant_water_sum - tmp_water_sum)) <= len(self.tenant) - tenant_index), tenant_water_sum, tmp_water_sum))
 
     def is_valid_tenant_row(self, row):
         """ a valid tenant row must contains room, name, and email """
@@ -258,7 +258,7 @@ class Excel:
         simon.email = row[self.email].value
         simon.movein = row[self.movein].value
         simon.moveout = row[self.moveout].value
-        simon.skipemail = str(row[self.skip_email].value).lower().lstrip().rstrip() == 'yes'
+        simon.sendemail = str(row[self.send_email].value).lower().strip() == 'yes'
         simon.service_cycle = service_cycle
         simon.service_power_days = simon.service_cycle.get_power_days(simon.movein, simon.moveout)
         simon.service_water_days = simon.service_cycle.get_water_days(simon.movein, simon.moveout)
