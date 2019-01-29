@@ -332,6 +332,10 @@ class Excel:
             if self.is_valid_tenant_row(row):
                 wsb.cell(i, j).value = self.tenant[index].power_my_fee
                 wsb.cell(i, k).value = self.tenant[index].water_my_fee
+                if self.tenant[index].service_power_days:
+                    wsb.cell(i, j+4).value = self.tenant[index].power_my_fee / self.tenant[index].service_power_days
+                if self.tenant[index].service_water_days:
+                    wsb.cell(i, k+4).value = self.tenant[index].water_my_fee / self.tenant[index].service_water_days
                 index += 1
             i += 1
         # add little bit style
