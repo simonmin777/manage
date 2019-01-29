@@ -47,7 +47,8 @@ class Tenant:
             self.water_my_fee = self.service_cycle.water_total_fee*self.service_water_days/water_all_days
             self.water_my_fee = int(self.water_my_fee*100)/100      # truncate after 2 decimal
 
-    def write_to_file(self, path='./housebill/'):
+    def write_to_file(self, pathin='./housebill/'):
+        path = './%s/' % pathin
         fout = open(path + "%s %s %s.txt" % (self.room, self.name, self.email) + '.txt', 'w')
         fout.write(self.get_email_txt())
         fout.close()
@@ -333,6 +334,12 @@ class Excel:
                 wsb.cell(i, k).value = self.tenant[index].water_my_fee
                 index += 1
             i += 1
+        # add little bit style
+        wsb.column_dimensions['b'].width = 20
+        for _ in ['e', 'f', 'g', 'i', 'j']:
+            wsb.column_dimensions[_].width = 12
+        # for i in range(1, row):
+        #     self.ws['d%d' % i].alignment = Alignment(horizontal='center')
         # save and close new workbookno
         wbb.save(filename)
         wbb.close()
@@ -347,8 +354,14 @@ class Excel:
         self.wb.save(self.filename)
 
     def write_all_tenant_to_file(self):
+        import os
+        folder = self.tenant[0].service_cycle.get_billday_string()[:10]
+        try:
+            os.mkdir(folder)
+        except OSError:
+            print('Warning: unable to create directory %s, may already exist' % folder)
         for simon in self.tenant:
-            simon.write_to_file()
+            simon.write_to_file(folder)
 
     def clean_save(self):
         pass
