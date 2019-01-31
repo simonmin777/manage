@@ -332,14 +332,16 @@ class Excel:
             if self.is_valid_tenant_row(row):
                 wsb.cell(i, j).value = self.tenant[index].power_my_fee
                 wsb.cell(i, k).value = self.tenant[index].water_my_fee
-                if self.tenant[index].service_power_days:
-                    wsb.cell(i, j+4).value = self.tenant[index].power_my_fee / self.tenant[index].service_power_days
-                if self.tenant[index].service_water_days:
-                    wsb.cell(i, k+4).value = self.tenant[index].water_my_fee / self.tenant[index].service_water_days
+                # add average daily value
+                # if self.tenant[index].service_power_days:
+                #     wsb.cell(i, j+4).value = self.tenant[index].power_my_fee / self.tenant[index].service_power_days
+                # if self.tenant[index].service_water_days:
+                #     wsb.cell(i, k+4).value = self.tenant[index].water_my_fee / self.tenant[index].service_water_days
                 index += 1
             i += 1
         # add little bit style
         wsb.column_dimensions['b'].width = 20
+        wsb.column_dimensions['c'].width = 25
         for _ in ['e', 'f', 'g', 'i', 'j']:
             wsb.column_dimensions[_].width = 12
         # for i in range(1, row):
