@@ -342,6 +342,7 @@ class Excel:
         # add little bit style
         wsb.column_dimensions['b'].width = 20
         wsb.column_dimensions['c'].width = 25
+        wsb.column_dimensions['d'].width = 15
         for _ in ['e', 'f', 'g', 'i', 'j']:
             wsb.column_dimensions[_].width = 12
         # for i in range(1, row):
