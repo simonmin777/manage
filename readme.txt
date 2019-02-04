@@ -1,5 +1,17 @@
 ===============================================================================
-Changes:
+Release V1.1
+
+1. use a config file to input account name and password
+
+2. better format of backup file, column width, sum, etc.
+
+3. Auto create e-mail txt directory
+
+4. TODO: change error check so 0 service date is OK (no need to remove old tenants)
+
+
+===============================================================================
+Release V1.0
 
 1. use run-time search to key words so colomn CAN be added. for example, insert a new column between tenants and e-mail would not cause any issue
 
@@ -16,41 +28,3 @@ Changes:
 7. add a feature to cleanup input xlsx file, so service dates are cleared, force new run to enter new service dates
 
 ===============================================================================
-
-1. install python-3.7.1
-	==> go to https://www.python.org/downloads/windows/
-	==> scroll down a little bit to find
-		Python 3.7.1 - 2018-10-20
-			Download Windows x86 web-based installer
-			Download Windows x86 executable installer
-			Download Windows x86 embeddable zip file
-			Download Windows x86-64 web-based installer
-			...
-	==> click and download the 2nd one: x86 executable installer
-	==> download file name should be python-3.7.1.exe
-	==> double click to run it
-
-2. make sure python (py) in system PATH
-	==> open cmd, type: py -h
-	==> if see help message of python, it works
-
-3. still in cmd, install python libray, type each of the following and hit enter
-	==> pip install datetime
-	==> pip install openpyxl
-
-4. copy manage.py excel.py SJ645.xlsx to a clean directory
-	IMPORTANT: make a new folder under that directory as "housebill", all email txt will be stored in that folder
-
-5. open cmd, cd to the directory contain manage.py, type
-	==> py manage.py -i SJ645
-
-6. if need to test send e-mail, follow these steps:
-	==> turn on less secure app access, google instruction at https://support.google.com/accounts/answer/6010255
-	==> also make sure 2-step verification is turned off for this version
-	==> open manage.py with a txt editor, notepad ok, but not word, find this line at very bottom
-            send_gmail_all('youremail@gmail.com', 'password', xlsx.tenant, False)
-    ==> change the gmail account and passowrd, and change last argument to True
-	==> the enclosing ' ' must be there, and no space inside ' ', for example, simonmin777@gmail with password 12345 will be
-		==> 	send_gmail_all('simonmin777@gmail.com', '12345', xlsx.tenant, True)
-
-
