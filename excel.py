@@ -122,18 +122,21 @@ class ServiceCycle:
             return (min(moveout, self.power_end) - max(movein, self.power_start)).days + 1  # power days + 1
 
     def get_water_days(self, movein, moveout):
+        delta = 0
         if moveout is None:
             moveout = self.water_end
+        else:
+            delta = 1   # water day by default not include last day, but moveout does
         if not (isinstance(movein, datetime.datetime) and isinstance(moveout, datetime.datetime) and isinstance(self.water_start, datetime.datetime) and isinstance(self.water_end, datetime.datetime)):
             return 0
         elif self.water_end < movein or self.water_start > moveout:
             return 0
         else:
-            return (min(moveout, self.water_end) - max(movein, self.water_start)).days
+            return (min(moveout, self.water_end) - max(movein, self.water_start)).days + delta
 
     def get_power_service_days(self):
         if self.is_power_cycle():
-            return (self.power_end-self.power_start).days
+            return (self.power_end-self.power_start).days + 1  # power days + 1
         return 0
 
     def get_water_service_days(self):

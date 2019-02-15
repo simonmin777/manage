@@ -3,6 +3,7 @@ Release V1.2  2019-02-15
 1. add an addon field for extra charges, parking, keys, etc. (May not need)
 2. use log instead of printf, ignore 0 payment tenants
 3. add backup system to the program, now backup 5 runs
+4. fix error in counting last day 
 
 ===============================================================================
 Release V1.1
