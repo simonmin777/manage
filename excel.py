@@ -3,13 +3,14 @@ not hard code, buy dynamicly read a work book
 """
 import openpyxl
 import datetime
-# import house
+import logging
+import os
+import shutil
 
 ERROR_NOT_VALID_CYCLE = 701
 ERROR_NOT_VALID_TENANT_CYCLE = 702
 ERROR_NEGETIVE_NUMBER = 703
 ERROR_NO_TENANT = 704
-
 
 class Tenant:
     """ each tenant has attributs can be assigned """
@@ -200,8 +201,7 @@ class Excel:
 
     @staticmethod
     def error_exit(string, error_code):
-        print('Error %d ' % error_code)
-        print(string)
+        logging.critical('ERROR %d - %s' % (error_code, string))
         exit(error_code)
 
     def tenant_check(self):
@@ -209,17 +209,18 @@ class Excel:
         for simon in self.tenant:
             # all billday must be the same
             if simon.service_cycle.get_billday_string() != billday:
-                print("\n********** Error!!! billday inconsistant %s vs %s **********\n" % (billday, simon.service_cycle.get_billday_string()))
+                logging.error("Billday inconsistant %s vs %s" % (billday, simon.service_cycle.get_billday_string()))
             # days and fees must be 0 or positive
             if simon.service_power_days < 0 or simon.service_water_days < 0 or simon.power_my_fee < 0 or simon.water_my_fee < 0:
                 Excel.error_exit(simon, ERROR_NEGETIVE_NUMBER)
-            # warning if my days < service cycle days
-            if simon.service_power_days < simon.service_cycle.get_power_service_days():
-                print("Warning: [%s %s %s] only has %d power days out of %d" % (simon.room, simon.name, simon.email, simon.service_power_days, simon.service_cycle.get_power_service_days()))
-            if simon.service_water_days < simon.service_cycle.get_water_service_days():
-                print("Warning: [%s %s %s] only has %d water days out of %d" % (simon.room, simon.name, simon.email, simon.service_water_days, simon.service_cycle.get_water_service_days()))
             if simon.service_power_days == 0 and simon.service_water_days == 0:
-                print("\n********** Error!!! the above tenant should be removed from xlsx **********\n")
+                logging.info("[%s %s %s] is not an active tenant" % (simon.room, simon.name, simon.email))
+            # warning if my days !=0 and < service cycle days
+            else:
+                if simon.service_power_days < simon.service_cycle.get_power_service_days():
+                    logging.warning("[%s %s %s] only has %d power days out of %d" % (simon.room, simon.name, simon.email, simon.service_power_days, simon.service_cycle.get_power_service_days()))
+                if simon.service_water_days < simon.service_cycle.get_water_service_days():
+                    logging.warning("[%s %s %s] only has %d water days out of %d" % (simon.room, simon.name, simon.email, simon.service_water_days, simon.service_cycle.get_water_service_days()))
 
     def tenant_sum_check(self, tenant_index):
         """ print True of Fasle for sum of tenant [index : -1] """
@@ -314,7 +315,24 @@ class Excel:
             wbb = openpyxl.load_workbook(filename)      # must no use readonly
         except OSError:
             wbb = openpyxl.Workbook()                   # create new xlxs
+            wbb.worksheets[0].title = 'Summary'
+            wbb.worksheets[0].cell(1, 1).value = 'Bill date'
+            wbb.worksheets[0].cell(1, 2).value = 'Utility'
+            wbb.worksheets[0].cell(1, 3).value = 'Bank In'
+            wbb.worksheets[0].cell(1, 4).value = 'Net In'
+            wbb.worksheets[0].column_dimensions['a'].width = 15
+            wbb.worksheets[0].column_dimensions['b'].width = 15
+            wbb.worksheets[0].column_dimensions['c'].width = 15
+            wbb.worksheets[0].column_dimensions['d'].width = 15
         wsb = wbb.create_sheet(self.tenant[0].service_cycle.get_billday_string())
+        # add entry in summary sheet
+        i = 2
+        while wbb.worksheets[0].cell(i, 1).value is not None:
+            i += 1
+        wbb.worksheets[0].cell(i, 1).value = "%s" % wsb.title
+        wbb.worksheets[0].cell(i, 2).value = "=SUM('%s'!K1:K200)" % wsb.title
+        wbb.worksheets[0].cell(i, 3).value = "=SUM('%s'!R1:R200)" % wsb.title
+        wbb.worksheets[0].cell(i, 4).value = "=C%d-B%d" % (i, i)
         # copy entire sheet first
         i, j = 1, 1
         for row in self.ws:
@@ -350,6 +368,36 @@ class Excel:
         # save and close new workbookno
         wbb.save(filename)
         wbb.close()
+        folder = '__backup__'
+        if not os.path.isdir(folder):
+            os.mkdir(folder)
+            logging.info('Create directory %s' % folder)
+        tenant_filename = filename[:-12]
+        backup_filename = filename[:-5]
+        surfix = '.xlsx'
+        shutil.copy(tenant_filename+surfix, folder)
+        shutil.copy(filename, folder)
+        os.chdir(folder)
+        # if filename+05 exist, remove it
+        def remove_if_exist(path):
+            if os.path.isfile(path):
+                os.remove(path)
+        remove_if_exist(tenant_filename+'05'+surfix)
+        remove_if_exist(backup_filename+'05'+surfix)
+        # rename each file 04->05, 03->04, until 00->01
+        def rename_if_exist(name, num):
+            if num == 0:
+                path = name + surfix
+                path2 = '%s01%s' % (name, surfix)
+            else:
+                path = '%s%02d%s' % (name, num, surfix)
+                path2 = '%s%02d%s' % (name, num+1, surfix)
+            if os.path.isfile(path):
+                shutil.move(path, path2)
+        for i in [4, 3, 2, 1, 0]:
+            rename_if_exist(tenant_filename, i)
+            rename_if_exist(backup_filename, i)
+        os.chdir('..')
 
     def cleanup(self):
         """ clear every cell in colomn service_dates and fee to None if not service_dates """
@@ -361,12 +409,10 @@ class Excel:
         self.wb.save(self.filename)
 
     def write_all_tenant_to_file(self):
-        import os
         folder = self.tenant[0].service_cycle.get_billday_string()[:10]
-        try:
+        if not os.path.isdir(folder):
             os.mkdir(folder)
-        except OSError:
-            print('Warning: unable to create directory %s, may already exist' % folder)
+            logging.info('Create directory %s' % folder)
         for simon in self.tenant:
             simon.write_to_file(folder)
 
