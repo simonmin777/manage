@@ -1,5 +1,5 @@
 """
-not hard code, buy dynamically read a work book
+not hard code, but dynamically read a work book
 """
 import openpyxl
 import datetime
@@ -9,14 +9,14 @@ import shutil
 
 ERROR_NOT_VALID_CYCLE = 701
 ERROR_NOT_VALID_TENANT_CYCLE = 702
-ERROR_NEGETIVE_NUMBER = 703
+ERROR_NEGATIVE_NUMBER = 703
 ERROR_NO_TENANT = 704
 
 
 class Tenant:
-    """ each tenant has attributs can be assigned """
+    """ each tenant has attributes can be assigned """
     def __init__(self):
-        """ default constructor, list all attributs and type """
+        """ default constructor, list all attributes and type """
         self.room = ' '     # str
         self.name = ' '     # str
         self.email = ' '    # str
@@ -34,7 +34,7 @@ class Tenant:
         rest = '%s | %s | %s ' % (self.room, self.name, self.email)
         rest += '\n' + str(self.service_cycle)
         rest += 'my power days = %d \tmy water days = %d\n' % (self.service_power_days, self.service_water_days)
-        rest += 'my powew fee = %d \tmy water fee = %d\n\n' % (self.power_my_fee, self.water_my_fee)
+        rest += 'my power fee = %d \tmy water fee = %d\n\n' % (self.power_my_fee, self.water_my_fee)
         return rest
 
     def calculate_fees(self, power_all_days, water_all_days):
@@ -85,7 +85,7 @@ class Tenant:
 
 
 class ServiceCycle:
-    """ contains mulitple (now only 2 service) cycle with fee"""
+    """ contains multiple (now only 2 service) cycle with fee"""
     def __init__(self, ws, rowindex, colindex):
         """ ROW COL extract ROW+1[COL, COL+1, COL+2] and ROW+2[COL, COL+1, COL+2] """
         self.power_start = ws[rowindex + 1][colindex].value
@@ -96,7 +96,7 @@ class ServiceCycle:
         self.water_total_fee = ws[rowindex + 2][colindex + 2].value
 
     def __repr__(self):
-        rest = 'Service cyle:\n'
+        rest = 'Service cycle:\n'
         if self.is_power_cycle():
             rest += 'Power: from %s to %s with fee %0.2f\n' % (str(self.power_start)[:10], str(self.power_end)[:10], self.power_total_fee)
         if self.is_water_cycle():
@@ -175,12 +175,12 @@ class ServiceCycle:
 
 
 class Excel:
-    """ to read an excel file with mulitple entry of tenant and service date """
+    """ to read an excel file with multiple entry of tenant and service date """
     def __init__(self, filename, sheetname):
-        """ construct key field lockation based on first row """
+        """ construct key field location based on first row """
         self.wb = openpyxl.load_workbook(filename)  # must NOT to use read only mode
         self.ws = self.wb[sheetname]
-        # read first row to determin key field
+        # read first row to determine key field
         matrix = {}
         _ = 0
         for _, cell in enumerate(self.ws[1]):
@@ -214,10 +214,10 @@ class Excel:
         for simon in self.tenant:
             # all billday must be the same
             if simon.service_cycle.get_billday_string() != billday:
-                logging.error("Billday inconsistant %s vs %s" % (billday, simon.service_cycle.get_billday_string()))
+                logging.error("Billday inconsistency %s vs %s" % (billday, simon.service_cycle.get_billday_string()))
             # days and fees must be 0 or positive
             if simon.service_power_days < 0 or simon.service_water_days < 0 or simon.power_my_fee < 0 or simon.water_my_fee < 0:
-                Excel.error_exit(simon, ERROR_NEGETIVE_NUMBER)
+                Excel.error_exit(simon, ERROR_NEGATIVE_NUMBER)
             if simon.service_power_days == 0 and simon.service_water_days == 0:
                 logging.info("[%s %s %s] is not an active tenant" % (simon.room, simon.name, simon.email))
             # warning if my days !=0 and < service cycle days
@@ -228,7 +228,7 @@ class Excel:
                     logging.warning("[%s %s %s] only has %d water days out of %d" % (simon.room, simon.name, simon.email, simon.service_water_days, simon.service_cycle.get_water_service_days()))
 
     def tenant_sum_check(self, tenant_index):
-        """ print True of Fasle for sum of tenant [index : -1] """
+        """ print True of False for sum of tenant [index : -1] """
         if len(self.tenant) == 0:
             Excel.error_exit('There is no tenant, why check sum?', ERROR_NO_TENANT)
         index = tenant_index
@@ -256,7 +256,7 @@ class Excel:
         return str(row[self.service_dates].value).lower().lstrip().rstrip() == 'service dates'
 
     def load_tenant_from_row(self, row, service_cycle):
-        """ return a Tenant object if sucessful, None otherwize """
+        """ return a Tenant object if successful, None otherwise """
         if not self.is_valid_tenant_row(row):
             return None
         simon = Tenant()
@@ -315,7 +315,7 @@ class Excel:
         self.tenant_sum_check(tenant_start)
 
     def backup(self, filename):
-        """ backup eveything to a backfile and update fees """
+        """ backup everything to a backup file and update fees """
         try:
             wbb = openpyxl.load_workbook(filename)      # must no use readonly
         except OSError:
@@ -383,12 +383,14 @@ class Excel:
         shutil.copy(tenant_filename+surfix, folder)
         shutil.copy(filename, folder)
         os.chdir(folder)
+
         # if filename+05 exist, remove it
         def remove_if_exist(path):
             if os.path.isfile(path):
                 os.remove(path)
         remove_if_exist(tenant_filename+'05'+surfix)
         remove_if_exist(backup_filename+'05'+surfix)
+
         # rename each file 04->05, 03->04, until 00->01
         def rename_if_exist(name, num):
             if num == 0:
@@ -405,7 +407,7 @@ class Excel:
         os.chdir('..')
 
     def cleanup(self):
-        """ clear every cell in colomn service_dates and fee to None if not service_dates """
+        """ clear every cell in column service_dates and fee to None if not service_dates """
         for row in self.ws:
             if not self.is_valid_service_dates_row(row):
                 row[self.service_dates].value = None
