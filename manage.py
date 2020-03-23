@@ -96,7 +96,7 @@ if __name__ == '__main__':
     def main():
         print(' ')
         filename = 'nosuchfile'
-        if len(sys.argv) < 2 or (sys.argv[1].lower() != '-i' and sys.argv[1].lower() != '-m'):
+        if len(sys.argv) < 2 or sys.argv[1].lower() != '-i':
             excel.Excel.error_exit('Usage: python manage.py -i [file.xlsx] [sheetname]', ERROR_WRONG_CMD)
         elif len(sys.argv) == 2:
             filename = 'OasisTenates.xlsx'

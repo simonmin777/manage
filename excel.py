@@ -125,8 +125,9 @@ class ServiceCycle:
         delta = 0
         if moveout is None:
             moveout = self.water_end
-        # else:
-        #     delta = 1   # water day by default not include last day, but moveout does
+        else:
+            delta = 0   # water day by default not include last day, but moveout does
+
         if not (isinstance(movein, datetime.datetime) and isinstance(moveout, datetime.datetime) and isinstance(self.water_start, datetime.datetime) and isinstance(self.water_end, datetime.datetime)):
             return 0
         elif self.water_end < movein or self.water_start > moveout:
