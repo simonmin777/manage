@@ -1,5 +1,5 @@
 """
-not hard code, buy dynamicly read a work book
+not hard code, buy dynamically read a work book
 """
 import openpyxl
 import datetime
@@ -11,6 +11,7 @@ ERROR_NOT_VALID_CYCLE = 701
 ERROR_NOT_VALID_TENANT_CYCLE = 702
 ERROR_NEGETIVE_NUMBER = 703
 ERROR_NO_TENANT = 704
+
 
 class Tenant:
     """ each tenant has attributs can be assigned """
