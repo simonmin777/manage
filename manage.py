@@ -5,8 +5,10 @@ manage filename -e ebill
 rbiz07.645sj@gmail.com
 
 vervion 1.0 released on 2018.01.01
+version 1.2 released on 2019.02.15
 """
 
+import logging
 import sys
 import time
 import openpyxl
@@ -80,12 +82,14 @@ if __name__ == '__main__':
     def main():
         print(' ')
         filename = 'nosuchfile'
-        if len(sys.argv) < 2 or sys.argv[1] != '-i':
+        if len(sys.argv) < 2 or sys.argv[1].lower() != '-i':
             excel.Excel.error_exit('Usage: python manage.py -i [file.xlsx] [sheetname]', ERROR_WRONG_CMD)
         elif len(sys.argv) == 2:
             filename = 'OasisTenates.xlsx'
         else:
             filename = sys.argv[2] if sys.argv[2].endswith('.xlsx') else sys.argv[2] + '.xlsx'
+        if sys.argv[1] == '-I':
+            logging.disable(logging.INFO)
         sheetname = 'next' if len(sys.argv) <= 3 else sys.argv[3]
         # test open file and find sheet using openpyxl
         if not test_open(filename, sheetname):
@@ -107,6 +111,7 @@ if __name__ == '__main__':
             xlsx.cleanup()
         xlsx.close()
 
+    logging.basicConfig(level=logging.WARNING, format='%(levelname)s - %(message)s')
     main()
 
 # end of top level
