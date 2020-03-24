@@ -4,7 +4,7 @@ top level to use excel module
 python3 manage.py -i
 rbiz07.645sj@gmail.com
 
-vervion 1.0 released on 2018.01.01
+version 1.0 released on 2018.01.01
 version 1.2 released on 2019.02.15
 version 1.3 released on 2019.07.24
 """
@@ -21,6 +21,7 @@ import datetime
 ERROR_WRONG_CMD = 101
 ERROR_WRONG_XLSX = 102
 ERROR_WRONG_SMTP = 103
+
 
 def send_gmail(myaddress, mypassword, toaddress, subject, bodytxt, flag=True):
     """ myaddress should be gmail, send to toaddress with subject and bodytxt """
@@ -40,16 +41,18 @@ def send_gmail(myaddress, mypassword, toaddress, subject, bodytxt, flag=True):
             excel.Excel.error_exit('SMTP e-mail got exception' + str(error.__class__), ERROR_WRONG_SMTP)
         time.sleep(3)  # wait 3 seconds to refresh server
 
+
 def send_gmail_all(myaddress, mypassword, tenant_list, flag=True):
     """ send to all tenant in a tenant list """
     for tenant in tenant_list:
         if tenant.sendemail:
             send_gmail(myaddress, mypassword, tenant.email,
                        'Utility bill due %s' % tenant.service_cycle.get_billday_string(), tenant.get_email_txt(), flag)
-            print('E-maind sent successfully ==> %s [%s %s]' % (tenant.email, tenant.room, tenant.name))
+            print('E-mail sent successfully ==> %s [%s %s]' % (tenant.email, tenant.room, tenant.name))
+
 
 def send_gmail_m_all(myaddress, mypassword, tenant_list, target_date, flag=True):
-    """ send maintaince email to all tenant in a tenant list """
+    """ send maintenance email to all tenant in a tenant list """
     for tenant in tenant_list:
         if tenant.sendemail:
             # TODO: format email + 2day for room not start with '645' & '632', logic here is not correct
@@ -61,7 +64,8 @@ def send_gmail_m_all(myaddress, mypassword, tenant_list, target_date, flag=True)
 
             send_gmail(myaddress, mypassword, tenant.email,
                        'Utility bill due %s' % tenant.service_cycle.get_billday_string(), tenant.get_email_txt(), flag)
-            print('E-maind sent successfully ==> %s [%s %s]' % (tenant.email, tenant.room, tenant.name))
+            print('E-mail sent successfully ==> %s [%s %s]' % (tenant.email, tenant.room, tenant.name))
+
 
 def ask_confirm(action):
     strin = ' '
@@ -70,6 +74,7 @@ def ask_confirm(action):
         if strin == 'no':
             return False
     return True
+
 
 def test_open(filename, sheetname):
     """" pass in xlsx file must contain [room, tenants, e-mail, service dates] in first row """
@@ -95,7 +100,7 @@ def test_open(filename, sheetname):
 if __name__ == '__main__':
     def main():
         print(' ')
-        filename = 'nosuchfile'
+        filename = 'no_such_file'
         if len(sys.argv) < 2 or sys.argv[1].lower() != '-i':
             excel.Excel.error_exit('Usage: python manage.py -i [file.xlsx] [sheetname]', ERROR_WRONG_CMD)
         elif len(sys.argv) == 2:
