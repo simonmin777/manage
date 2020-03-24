@@ -1,4 +1,10 @@
-Release V1.2  2019-02-15
+Release V2.0    2020-03-23
+
+1. Finalize manage.py and excel.py
+2. TODO: start DEV branch on spam.py
+
+===============================================================================
+Release V1.2    2019-02-15
 
 1. add an addon field for extra charges, parking, keys, etc. (May not need)
 2. use log instead of printf, ignore 0 payment tenants
