@@ -10,6 +10,7 @@ import sys
 import time
 import smtplib
 import excel
+from manage import send_gmail
 import tkinter as tk
 
 SPAM_TITLE = "Reminder: all common area will be cleaned "
@@ -53,9 +54,14 @@ class SpamGroup:
         return string
 
     # only send spam if is selected
-    def send_spam(self, title, body) -> bool:
+    def send_spam(self, myaddress, mypassword, title, body) -> bool:
         if not self.is_select:
             return False
+        for item in self.email:
+            if send_gmail(myaddress, mypassword, item, title, body):
+                print(item + " sent successfully\n")
+            else:
+                return False
         return True
 
     @ staticmethod
@@ -77,9 +83,11 @@ class SpamCenter:
 
 
 class MainFrame:
-    def __init__(self, service_type):
+    def __init__(self, service_type, myaddress, mypassword):
         self.root = tk.Tk()
         self.root.title(service_type)
+        self.myaddress = myaddress
+        self.mypassword = mypassword
         left = tk.Frame(self.root)
         left.pack(side=tk.LEFT, fill=tk.Y, padx=20, pady=20)
         right = tk.Frame(self.root)
@@ -139,15 +147,30 @@ class MainFrame:
         self.lb_status.config(text=string)
 
     def send_spam(self):
+        # checkbox should be updated already, so is self.spam
+        # load title and body text
+        title = self.var_title.get()
+        body = self.text_widget.get("1.0", "end-1c")
         string = 'Spam to '
         for key in self.var_checkbox:
             string += key + ' ' + str(self.var_checkbox[key].get()) + ' '
+        string += '\n'
+        string += 'my: ' + self.myaddress + ' ' + self.mypassword + '\n'
+        string += 'title: ' + title + '\n'
+        string += 'body' + body
         print(string)
 
 
 # start top level
 if __name__ == '__main__':
-    # unittest.main()
-    frame = MainFrame('cleaning')
-    frame.root.mainloop()
+    with open('config.txt') as fin:
+        line1 = fin.readline().strip()
+        line2 = fin.readline().strip()
+    # check on line1 and line2 to make sure cross platform line definition is correct
+    if line1.endswith('@gmail.com') and line2.startswith('Hsi'):
+        frame = MainFrame('cleaning', line1, line2)
+        frame.root.mainloop()
+        print("End of script\n")
+    else:
+        print("Check config.txt\n")
 # end of file
