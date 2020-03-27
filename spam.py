@@ -3,12 +3,7 @@ GUI send email to selective tenants
 Construct tenant list using excel.py
 """
 
-# from datetime import datetime, timedelta
 from typing import List
-# import logging
-import sys
-import time
-import smtplib
 import excel
 from manage import send_gmail
 import tkinter as tk
@@ -55,13 +50,13 @@ class SpamGroup:
 
     # only send spam if is selected
     def send_spam(self, myaddress, mypassword, title, body) -> bool:
-        if not self.is_select:
-            return False
-        for item in self.email:
-            if send_gmail(myaddress, mypassword, item, title, body):
-                print(item + " sent successfully\n")
-            else:
-                return False
+        if self.is_select:
+            for item in self.email:
+                if send_gmail(myaddress, mypassword, item, title, body):
+                    print(item + " sent successfully\n")
+                else:
+                    print(item + " send failed\n")
+                    return False
         return True
 
     @ staticmethod
