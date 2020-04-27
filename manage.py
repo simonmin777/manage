@@ -25,6 +25,7 @@ ERROR_WRONG_SMTP = 103
 
 def send_gmail(myaddress, mypassword, toaddress, subject, bodytxt, flag=True):
     """ myaddress should be gmail, send to toaddress with subject and bodytxt """
+    toaddress += ", oasis.mngr@gmail.com"
     rest = 'From: %s\n' % myaddress
     rest += 'To: %s\n' % toaddress
     rest += 'Subject: %s\n\n' % subject
